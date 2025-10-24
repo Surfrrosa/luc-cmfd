@@ -99,16 +99,37 @@ class DinoBackbone(nn.Module):
             # Remove CLS token (first token)
             B, N_total, C = out.shape
             patch_tokens = out[:, 1:, :]  # (B, N_patches, C)
+            N_patches = patch_tokens.shape[1]
 
-            # Calculate spatial dimensions from input size and patch size
-            # DINOv2 vits14 has patch_size=14
-            patch_size = 14
-            _, _, H_in, W_in = x.shape
-            H = H_in // patch_size
-            W = W_in // patch_size
+            # Calculate spatial dimensions from actual number of patches
+            # DINOv2 creates patches from the input, need to infer grid size
+            H = W = int(N_patches ** 0.5)
 
-            # Reshape to spatial grid
-            feats = patch_tokens.reshape(B, H, W, C).permute(0, 3, 1, 2)  # (B, C, H, W)
+            # Verify it's a perfect square
+            if H * W != N_patches:
+                # Not square - calculate from input dimensions
+                patch_size = 14
+                _, _, H_in, W_in = x.shape
+                H = H_in // patch_size
+                W = W_in // patch_size
+
+                # If still doesn't match, there might be border patches dropped
+                if H * W != N_patches:
+                    # Use actual patch count and infer closest dimensions
+                    import math
+                    H = int(math.sqrt(N_patches))
+                    W = N_patches // H
+                    # Pad if needed
+                    if H * W < N_patches:
+                        W += 1
+
+            # Reshape to spatial grid (might have to truncate if not perfect)
+            if H * W == N_patches:
+                feats = patch_tokens.reshape(B, H, W, C).permute(0, 3, 1, 2)  # (B, C, H, W)
+            else:
+                # Truncate to fit
+                patch_tokens_truncated = patch_tokens[:, :H*W, :]
+                feats = patch_tokens_truncated.reshape(B, H, W, C).permute(0, 3, 1, 2)
         else:
             # Simple conv backbone
             feats = self.backbone(x)
