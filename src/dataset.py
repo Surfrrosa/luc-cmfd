@@ -7,11 +7,32 @@ import re
 
 import numpy as np
 import torch
+import torch.nn.functional as F
 from torch.utils.data import Dataset
 from PIL import Image
 
 # Optional: set to False if you want grayscale-as-1ch
 DEFAULT_TO_RGB = True
+
+def _pad_to(img_t: torch.Tensor, target_h: int, target_w: int, mode: str = "constant", value: float = 0.0) -> torch.Tensor:
+    """
+    Pad (C,H,W) tensor to (C,target_h,target_w).
+
+    Args:
+        img_t: Input tensor (C,H,W)
+        target_h: Target height
+        target_w: Target width
+        mode: Padding mode ('constant', 'reflect', etc.)
+        value: Fill value for constant padding
+
+    Returns:
+        Padded tensor (C,target_h,target_w)
+    """
+    _, h, w = img_t.shape
+    pad_h = target_h - h
+    pad_w = target_w - w
+    # pad format is (left, right, top, bottom)
+    return F.pad(img_t, (0, pad_w, 0, pad_h), mode=mode, value=value)
 
 def _imread(path: Union[str, Path]) -> np.ndarray:
     """Read image with PIL, return np.uint8 (H,W,3) or (H,W,1)."""
@@ -248,16 +269,46 @@ class CMFDDataset(Dataset):
 
 def collate_fn(batch: List[Dict]) -> Dict[str, Any]:
     """
-    Custom collate function compatible with train.py expectations.
+    Padding-based collate function that preserves aspect ratios.
+
+    Pads all images/masks in a batch to the max(H), max(W) within the batch,
+    rounded up to multiple of 32 for ViT/stride alignment.
+
+    This avoids distortion of biomedical structures and keeps features aligned.
 
     Args:
         batch: List of sample dicts from __getitem__
 
     Returns:
-        Batched dictionary with 'image', 'mask', and metadata
+        Batched dictionary with padded 'image', 'mask', and metadata
     """
-    images = torch.stack([item['image'] for item in batch])
-    masks = torch.stack([item['mask'] for item in batch])
+    # Find target size (max dimensions in batch)
+    hs = [item['image'].shape[1] for item in batch]
+    ws = [item['image'].shape[2] for item in batch]
+    Ht = max(hs)
+    Wt = max(ws)
+
+    # Pad to multiple of 32 for ViT/stride alignment
+    mul = 32
+    Ht = ((Ht + mul - 1) // mul) * mul
+    Wt = ((Wt + mul - 1) // mul) * mul
+
+    # Pad images & masks
+    padded_imgs = []
+    padded_msks = []
+
+    for item in batch:
+        img = item['image'].contiguous()  # (C,H,W)
+        msk = item['mask'].contiguous()   # (1,H,W)
+
+        img_p = _pad_to(img, Ht, Wt, mode="constant", value=0.0)
+        msk_p = _pad_to(msk, Ht, Wt, mode="constant", value=0.0)
+
+        padded_imgs.append(img_p)
+        padded_msks.append(msk_p)
+
+    images = torch.stack(padded_imgs, dim=0)   # (B,C,Ht,Wt)
+    masks = torch.stack(padded_msks, dim=0)    # (B,1,Ht,Wt)
 
     return {
         'image': images,
