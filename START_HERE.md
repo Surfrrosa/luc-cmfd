@@ -22,6 +22,7 @@
 ## File Guide
 
 ### Essential Reading
+- **COMPETITION_FRAMEWORK.md** - Master playbook for top 3-5 push (READ THIS FIRST)
 - **CONTEXT.md** - Complete project history, decisions, and context
 - **QUICKSTART.md** - Immediate next steps and key commands
 - **QUALITY_STATUS.md** - What's implemented and why
@@ -46,6 +47,7 @@
 
 ### Scripts
 - **scripts/validate_submission.py** - Validate RLE format (CRITICAL)
+- **scripts/fit_ensemble.py** - Fit ensemble weights with NNLS
 - **train_kaggle.py** - Training script
 - **kaggle_train.ipynb** - Kaggle notebook for GPU training
 
@@ -122,9 +124,10 @@ git push origin main
 
 ## Success Criteria
 
-**Minimum:** Valid submission, F1 > 0.5, runtime <4h  
-**Target:** F1 > 0.70, runtime <3h, top 25% leaderboard  
-**Stretch:** F1 > 0.75, top 10% leaderboard
+**Minimum:** Valid submission, F1 > 0.5, runtime <4h
+**Target:** F1 > 0.70, runtime <3h, top 25% leaderboard
+**Stretch:** F1 > 0.75, top 5 leaderboard (50-60% probability)
+**Moonshot:** Top 3 leaderboard (20-30% probability with full ensemble + TTA + domain boost)
 
 ---
 
