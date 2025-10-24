@@ -161,7 +161,8 @@ def train_epoch(
 def validate(
     model: CMFDNet,
     dataloader: DataLoader,
-    device: torch.device
+    device: torch.device,
+    save_predictions: bool = False
 ) -> dict:
     """
     Validation loop.
@@ -170,15 +171,21 @@ def validate(
         model: CMFD model
         dataloader: Validation data loader
         device: Device
+        save_predictions: If True, return predictions for post-processing sweep
 
     Returns:
-        Dictionary with validation statistics
+        Dictionary with validation statistics (and optionally predictions)
     """
     model.eval()
 
     total_loss = 0
     total_f1 = 0
     n_batches = 0
+
+    # Storage for predictions
+    all_prob_masks = []
+    all_gt_masks = []
+    all_case_ids = []
 
     for batch in tqdm(dataloader, desc="Validation"):
         images = batch['image'].to(device)
@@ -196,10 +203,29 @@ def validate(
         total_f1 += metrics['f1']
         n_batches += 1
 
-    return {
+        # Save predictions if requested
+        if save_predictions:
+            probs = torch.sigmoid(logits).squeeze(1).cpu().numpy()  # (B, H, W)
+            gt = masks.squeeze(1).cpu().numpy()  # (B, H, W)
+
+            for i in range(len(probs)):
+                all_prob_masks.append(probs[i])
+                all_gt_masks.append(gt[i])
+                all_case_ids.append(batch.get('case_id', [f'val_{len(all_case_ids)}'])[i])
+
+    result = {
         'loss': total_loss / n_batches,
         'f1': total_f1 / n_batches
     }
+
+    if save_predictions:
+        result['predictions'] = {
+            'prob_masks': all_prob_masks,
+            'gt_masks': all_gt_masks,
+            'case_ids': all_case_ids
+        }
+
+    return result
 
 
 def main(
@@ -207,6 +233,8 @@ def main(
     config_path: str = None,
     weights_backbone: str = None,
     weights_out: str = "best_model.pth",
+    log_csv: str = None,
+    save_val_preds: str = None,
     epochs: int = 50,
     early_stop: int = 10,
     amp: bool = True,
@@ -223,6 +251,8 @@ def main(
         config_path: Path to YAML config file
         weights_backbone: Path to pretrained backbone weights
         weights_out: Output path for trained model
+        log_csv: Path to save per-epoch metrics CSV
+        save_val_preds: Path to save validation predictions (.npz)
         epochs: Number of epochs
         early_stop: Early stopping patience
         amp: Use automatic mixed precision
@@ -350,6 +380,12 @@ def main(
 
     logger.info("Starting training...")
 
+    # Initialize CSV log if requested
+    if log_csv:
+        with open(log_csv, 'w') as f:
+            f.write('epoch,train_loss,train_f1,val_loss,val_f1,lr,best\n')
+        logger.info(f"Logging to {log_csv}")
+
     for epoch in range(epochs):
         logger.info(f"\nEpoch {epoch + 1}/{epochs}")
 
@@ -364,22 +400,32 @@ def main(
 
         # Validate
         with Timer("Validation", logger):
-            val_stats = validate(model, val_loader, device)
+            val_stats = validate(model, val_loader, device, save_predictions=False)
 
         logger.info(f"Val - Loss: {val_stats['loss']:.4f}, F1: {val_stats['f1']:.4f}")
 
         # Scheduler step
         scheduler.step(val_stats['f1'])
+        current_lr = optimizer.param_groups[0]['lr']
 
         # Save best model
+        is_best = False
         if val_stats['f1'] > best_f1:
             best_f1 = val_stats['f1']
             patience_counter = 0
+            is_best = True
 
             torch.save(model.state_dict(), weights_out)
             logger.info(f"Saved best model to {weights_out} (F1: {best_f1:.4f})")
         else:
             patience_counter += 1
+
+        # Log to CSV
+        if log_csv:
+            with open(log_csv, 'a') as f:
+                f.write(f"{epoch+1},{train_stats['loss']:.6f},{train_stats['f1']:.6f},"
+                       f"{val_stats['loss']:.6f},{val_stats['f1']:.6f},{current_lr:.8f},"
+                       f"{1 if is_best else 0}\n")
 
         # Early stopping
         if patience_counter >= early_stop:
@@ -393,6 +439,27 @@ def main(
 
     logger.info(f"\nTraining complete! Best F1: {best_f1:.4f}")
 
+    # Save validation predictions for post-processing sweep
+    if save_val_preds:
+        logger.info(f"\nSaving validation predictions to {save_val_preds}...")
+
+        # Load best model
+        model.load_state_dict(torch.load(weights_out, map_location=device))
+
+        # Run validation with prediction saving
+        val_stats = validate(model, val_loader, device, save_predictions=True)
+
+        # Save as npz
+        preds = val_stats['predictions']
+        np.savez_compressed(
+            save_val_preds,
+            prob_masks=np.array(preds['prob_masks'], dtype=object),
+            gt_masks=np.array(preds['gt_masks'], dtype=object),
+            case_ids=np.array(preds['case_ids'])
+        )
+
+        logger.info(f"✓ Saved {len(preds['prob_masks'])} validation predictions")
+
 
 if __name__ == '__main__':
     import argparse
@@ -405,6 +472,10 @@ if __name__ == '__main__':
                         help='Path to pretrained backbone weights (.pth file)')
     parser.add_argument('--weights_out', type=str, default='best_model.pth',
                         help='Output path for trained model')
+    parser.add_argument('--log_csv', type=str,
+                        help='Path to save per-epoch metrics CSV')
+    parser.add_argument('--save_val_preds', type=str,
+                        help='Path to save validation predictions (.npz) for post-processing sweep')
     parser.add_argument('--epochs', type=int, default=50,
                         help='Number of training epochs')
     parser.add_argument('--early_stop', type=int, default=10,
@@ -427,6 +498,8 @@ if __name__ == '__main__':
         config_path=args.config,
         weights_backbone=args.weights_backbone,
         weights_out=args.weights_out,
+        log_csv=args.log_csv,
+        save_val_preds=args.save_val_preds,
         epochs=args.epochs,
         early_stop=args.early_stop,
         amp=bool(args.amp),
