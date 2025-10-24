@@ -98,6 +98,12 @@ class DinoBackbone(nn.Module):
             out = self.backbone.get_intermediate_layers(x, n=1, reshape=True)[0]
             # out: (B, H, W, C) where H = input_H // 14, W = input_W // 14
 
+            # Debug: print shape before permute
+            if not hasattr(self, '_debug_printed_pre_permute'):
+                print(f"DEBUG _extract: Before permute: {out.shape}")
+                print(f"DEBUG _extract: embed_dim = {self.backbone.embed_dim if hasattr(self.backbone, 'embed_dim') else 'N/A'}")
+                self._debug_printed_pre_permute = True
+
             # Permute to (B, C, H, W) for PyTorch convention
             feats = out.permute(0, 3, 1, 2)  # (B, C, H, W)
         else:
