@@ -90,8 +90,10 @@ def self_corr(
         device=feats.device
     )  # (N, N)
 
-    # Apply mask (set excluded correlations to -inf)
-    corr_matrix = corr_matrix.masked_fill(mask.unsqueeze(0), -1e9)
+    # Apply mask (set excluded correlations to large negative value)
+    # Use -65500 instead of -1e9 to avoid overflow in float16 (AMP)
+    # Float16 max magnitude is ~65504, so -65500 is safe and still acts as -inf
+    corr_matrix = corr_matrix.masked_fill(mask.unsqueeze(0), -65500.0)
 
     # Get top-k matches for each query
     top_scores, top_indices = torch.topk(corr_matrix, k=top_k, dim=2)  # (B, N, k)
