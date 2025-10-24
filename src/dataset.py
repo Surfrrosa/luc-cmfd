@@ -288,8 +288,11 @@ def collate_fn(batch: List[Dict]) -> Dict[str, Any]:
     Ht = max(hs)
     Wt = max(ws)
 
-    # Pad to multiple of 32 for ViT/stride alignment
-    mul = 32
+    # Pad to multiple of 224 (LCM of 14 and 32)
+    # - DINOv2 patch_embed requires multiples of patch_size (14)
+    # - Decoder/stride may require multiples of 32
+    # - LCM(14, 32) = 224 satisfies both
+    mul = 224
     Ht = ((Ht + mul - 1) // mul) * mul
     Wt = ((Wt + mul - 1) // mul) * mul
 
