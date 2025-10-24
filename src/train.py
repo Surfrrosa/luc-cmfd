@@ -309,8 +309,6 @@ def main(
         use_strip_pool=model_cfg.get('use_strip_pool', False)
     )
 
-    logger.info(f"Backbone feature dim: {model.backbone.feat_dim}")
-
     # Load backbone weights if provided
     if weights_backbone:
         weights_path = Path(weights_backbone)
