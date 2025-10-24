@@ -94,12 +94,21 @@ class DinoBackbone(nn.Module):
         if hasattr(self.backbone, 'get_intermediate_layers'):
             # DINOv2 ViT - extract patch features
             out = self.backbone.get_intermediate_layers(x, n=1)[0]
-            # out: (B, N_patches, C)
+            # out: (B, N_patches + 1, C) where +1 is CLS token
 
-            # Reshape to spatial: assume square patches
-            B, N, C = out.shape
-            H = W = int(N ** 0.5)
-            feats = out.reshape(B, H, W, C).permute(0, 3, 1, 2)  # (B, C, H, W)
+            # Remove CLS token (first token)
+            B, N_total, C = out.shape
+            patch_tokens = out[:, 1:, :]  # (B, N_patches, C)
+
+            # Calculate spatial dimensions from input size and patch size
+            # DINOv2 vits14 has patch_size=14
+            patch_size = 14
+            _, _, H_in, W_in = x.shape
+            H = H_in // patch_size
+            W = W_in // patch_size
+
+            # Reshape to spatial grid
+            feats = patch_tokens.reshape(B, H, W, C).permute(0, 3, 1, 2)  # (B, C, H, W)
         else:
             # Simple conv backbone
             feats = self.backbone(x)
