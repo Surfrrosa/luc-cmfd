@@ -9,9 +9,15 @@ from pathlib import Path
 import numpy as np
 from tqdm import tqdm
 
-from .model import CMFDNet
-from .dataset import CMFDDataset, collate_fn
-from .utils import set_all_seeds, setup_logger, Timer, memory_stats
+try:
+    from .model import CMFDNet
+    from .dataset import CMFDDataset, collate_fn
+    from .utils import set_all_seeds, setup_logger, Timer, memory_stats
+except ImportError:
+    # Fallback for direct execution
+    from model import CMFDNet
+    from dataset import CMFDDataset, collate_fn
+    from utils import set_all_seeds, setup_logger, Timer, memory_stats
 
 
 def dice_loss(pred: torch.Tensor, target: torch.Tensor, smooth: float = 1.0) -> torch.Tensor:
@@ -197,28 +203,48 @@ def validate(
 
 
 def main(
-    train_image_dir: str,
-    train_mask_dir: str,
-    val_split: float = 0.2,
-    batch_size: int = 8,
+    data_root: str,
+    config_path: str = None,
+    weights_backbone: str = None,
+    weights_out: str = "best_model.pth",
     epochs: int = 50,
-    lr: float = 1e-4,
-    output_dir: str = "weights",
+    early_stop: int = 10,
+    amp: bool = True,
+    val_split: float = 0.2,
+    batch_size: int = None,
+    lr: float = None,
     seed: int = 42
 ):
     """
-    Main training function.
+    Main training function with config support.
 
     Args:
-        train_image_dir: Training images directory
-        train_mask_dir: Training masks directory
-        val_split: Validation split ratio
-        batch_size: Batch size
+        data_root: Root directory containing train_images/forged, train_images/authentic, train_masks
+        config_path: Path to YAML config file
+        weights_backbone: Path to pretrained backbone weights
+        weights_out: Output path for trained model
         epochs: Number of epochs
-        lr: Learning rate
-        output_dir: Output directory for weights
+        early_stop: Early stopping patience
+        amp: Use automatic mixed precision
+        val_split: Validation split ratio
+        batch_size: Batch size (overrides config if provided)
+        lr: Learning rate (overrides config if provided)
         seed: Random seed
     """
+    import yaml
+
+    # Load config if provided
+    cfg = {}
+    if config_path:
+        with open(config_path, 'r') as f:
+            cfg = yaml.safe_load(f)
+
+    # Get training params from config or defaults
+    if batch_size is None:
+        batch_size = cfg.get('training', {}).get('batch_size', 16)
+    if lr is None:
+        lr = cfg.get('training', {}).get('lr', 1e-4)
+
     # Setup
     set_all_seeds(seed)
     logger = setup_logger()
@@ -226,17 +252,14 @@ def main(
 
     logger.info(f"Device: {device}")
     logger.info(f"Seed: {seed}")
-
-    # Create output directory
-    output_path = Path(output_dir)
-    output_path.mkdir(exist_ok=True, parents=True)
+    logger.info(f"Config: {config_path if config_path else 'None (using defaults)'}")
+    logger.info(f"Batch size: {batch_size}, LR: {lr}, Epochs: {epochs}, Early stop: {early_stop}")
 
     # Create dataset
     logger.info("Loading dataset...")
     full_dataset = CMFDDataset(
-        image_dir=train_image_dir,
-        mask_dir=train_mask_dir,
-        normalize=True
+        root=data_root,
+        split="train"
     )
 
     # Train/val split
@@ -257,7 +280,7 @@ def main(
         shuffle=True,
         num_workers=4,
         collate_fn=collate_fn,
-        pin_memory=True
+        pin_memory=True if device.type == 'cuda' else False
     )
 
     val_loader = DataLoader(
@@ -266,22 +289,36 @@ def main(
         shuffle=False,
         num_workers=4,
         collate_fn=collate_fn,
-        pin_memory=True
+        pin_memory=True if device.type == 'cuda' else False
     )
 
-    # Create model
+    # Create model with config params
     logger.info("Creating model...")
+    model_cfg = cfg.get('model', {})
     model = CMFDNet(
-        backbone='dinov2_vits14',
-        freeze_backbone=True,
-        patch=12,
-        stride=4,
-        top_k=5
+        backbone=model_cfg.get('backbone', 'dinov2_vits14'),
+        freeze_backbone=model_cfg.get('freeze_backbone', True),
+        patch=model_cfg.get('patch', 12),
+        stride=model_cfg.get('stride', 4),
+        top_k=model_cfg.get('top_k', 5)
     )
+
+    # Load backbone weights if provided
+    if weights_backbone:
+        logger.info(f"Loading backbone weights from {weights_backbone}")
+        try:
+            state_dict = torch.load(weights_backbone, map_location='cpu')
+            # Load only backbone weights
+            model.backbone.load_state_dict(state_dict, strict=False)
+            logger.info("Backbone weights loaded successfully")
+        except Exception as e:
+            logger.warning(f"Could not load backbone weights: {e}")
+
     model = model.to(device)
 
     # Enable channels-last for performance
-    model = model.to(memory_format=torch.channels_last)
+    if device.type == 'cuda':
+        model = model.to(memory_format=torch.channels_last)
 
     # Optimizer
     optimizer = optim.AdamW(
@@ -291,15 +328,14 @@ def main(
 
     # Scheduler
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, mode='max', factor=0.5, patience=5, verbose=True
+        optimizer, mode='max', factor=0.5, patience=5
     )
 
     # AMP scaler
-    scaler = GradScaler()
+    scaler = GradScaler() if amp else None
 
     # Training loop
     best_f1 = 0
-    patience = 10
     patience_counter = 0
 
     logger.info("Starting training...")
@@ -309,7 +345,10 @@ def main(
 
         # Train
         with Timer("Train epoch", logger):
-            train_stats = train_epoch(model, train_loader, optimizer, scaler, device, logger)
+            if amp and scaler:
+                train_stats = train_epoch(model, train_loader, optimizer, scaler, device, logger)
+            else:
+                train_stats = train_epoch(model, train_loader, optimizer, GradScaler(), device, logger)
 
         logger.info(f"Train - Loss: {train_stats['loss']:.4f}, F1: {train_stats['f1']:.4f}")
 
@@ -327,20 +366,20 @@ def main(
             best_f1 = val_stats['f1']
             patience_counter = 0
 
-            save_path = output_path / "best_model.pth"
-            torch.save(model.state_dict(), save_path)
-            logger.info(f"Saved best model (F1: {best_f1:.4f})")
+            torch.save(model.state_dict(), weights_out)
+            logger.info(f"Saved best model to {weights_out} (F1: {best_f1:.4f})")
         else:
             patience_counter += 1
 
         # Early stopping
-        if patience_counter >= patience:
+        if patience_counter >= early_stop:
             logger.info(f"Early stopping after {epoch + 1} epochs")
             break
 
         # Memory stats
-        mem = memory_stats(device)
-        logger.info(f"GPU Memory: {mem['allocated_gb']:.2f}GB")
+        if device.type == 'cuda':
+            mem = memory_stats(device)
+            logger.info(f"GPU Memory: {mem['allocated_gb']:.2f}GB")
 
     logger.info(f"\nTraining complete! Best F1: {best_f1:.4f}")
 
@@ -348,25 +387,41 @@ def main(
 if __name__ == '__main__':
     import argparse
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--train_images', type=str, required=True)
-    parser.add_argument('--train_masks', type=str, required=True)
-    parser.add_argument('--val_split', type=float, default=0.2)
-    parser.add_argument('--batch_size', type=int, default=8)
-    parser.add_argument('--epochs', type=int, default=50)
-    parser.add_argument('--lr', type=float, default=1e-4)
-    parser.add_argument('--output_dir', type=str, default='weights')
-    parser.add_argument('--seed', type=int, default=42)
+    parser = argparse.ArgumentParser(description='Train CMFD model with config support')
+    parser.add_argument('--config', type=str, help='Path to YAML config file')
+    parser.add_argument('--data_root', type=str, required=True,
+                        help='Root directory containing train_images and train_masks')
+    parser.add_argument('--weights_backbone', type=str,
+                        help='Path to pretrained backbone weights (.pth file)')
+    parser.add_argument('--weights_out', type=str, default='best_model.pth',
+                        help='Output path for trained model')
+    parser.add_argument('--epochs', type=int, default=50,
+                        help='Number of training epochs')
+    parser.add_argument('--early_stop', type=int, default=10,
+                        help='Early stopping patience')
+    parser.add_argument('--amp', type=int, default=1,
+                        help='Use automatic mixed precision (1=on, 0=off)')
+    parser.add_argument('--val_split', type=float, default=0.2,
+                        help='Validation split ratio')
+    parser.add_argument('--batch_size', type=int,
+                        help='Batch size (overrides config if provided)')
+    parser.add_argument('--lr', type=float,
+                        help='Learning rate (overrides config if provided)')
+    parser.add_argument('--seed', type=int, default=42,
+                        help='Random seed')
 
     args = parser.parse_args()
 
     main(
-        train_image_dir=args.train_images,
-        train_mask_dir=args.train_masks,
+        data_root=args.data_root,
+        config_path=args.config,
+        weights_backbone=args.weights_backbone,
+        weights_out=args.weights_out,
+        epochs=args.epochs,
+        early_stop=args.early_stop,
+        amp=bool(args.amp),
         val_split=args.val_split,
         batch_size=args.batch_size,
-        epochs=args.epochs,
         lr=args.lr,
-        output_dir=args.output_dir,
         seed=args.seed
     )
