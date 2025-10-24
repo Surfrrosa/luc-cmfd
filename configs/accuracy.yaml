@@ -93,7 +93,7 @@ correlation:
 
 # Training
 training:
-  batch_size: 16
+  batch_size: 8  # Reduced from 16 to fit GPU memory with padding
   epochs: 50
   lr: 1e-4
   val_split: 0.2
