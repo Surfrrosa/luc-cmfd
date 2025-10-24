@@ -239,11 +239,15 @@ def main(
         with open(config_path, 'r') as f:
             cfg = yaml.safe_load(f)
 
-    # Get training params from config or defaults
+    # Get training params from config or defaults (ensure correct types)
     if batch_size is None:
-        batch_size = cfg.get('training', {}).get('batch_size', 16)
+        batch_size = int(cfg.get('training', {}).get('batch_size', 16))
     if lr is None:
-        lr = cfg.get('training', {}).get('lr', 1e-4)
+        lr = float(cfg.get('training', {}).get('lr', 1e-4))
+
+    # Ensure types even if provided via command line
+    batch_size = int(batch_size)
+    lr = float(lr)
 
     # Setup
     set_all_seeds(seed)
@@ -305,14 +309,18 @@ def main(
 
     # Load backbone weights if provided
     if weights_backbone:
-        logger.info(f"Loading backbone weights from {weights_backbone}")
-        try:
-            state_dict = torch.load(weights_backbone, map_location='cpu')
-            # Load only backbone weights
-            model.backbone.load_state_dict(state_dict, strict=False)
-            logger.info("Backbone weights loaded successfully")
-        except Exception as e:
-            logger.warning(f"Could not load backbone weights: {e}")
+        weights_path = Path(weights_backbone)
+        if weights_path.exists():
+            logger.info(f"Loading backbone weights from {weights_backbone}")
+            try:
+                state_dict = torch.load(weights_backbone, map_location='cpu')
+                # Load only backbone weights
+                model.backbone.load_state_dict(state_dict, strict=False)
+                logger.info("Backbone weights loaded successfully")
+            except Exception as e:
+                logger.warning(f"Could not load backbone weights: {e}")
+        else:
+            logger.warning(f"Backbone weights not found at {weights_backbone}, using random initialization")
 
     model = model.to(device)
 
