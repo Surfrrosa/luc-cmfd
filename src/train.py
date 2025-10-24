@@ -304,8 +304,12 @@ def main(
         freeze_backbone=model_cfg.get('freeze_backbone', True),
         patch=model_cfg.get('patch', 12),
         stride=model_cfg.get('stride', 4),
-        top_k=model_cfg.get('top_k', 5)
+        top_k=model_cfg.get('top_k', 5),
+        use_decoder=model_cfg.get('use_decoder', True),
+        use_strip_pool=model_cfg.get('use_strip_pool', False)
     )
+
+    logger.info(f"Backbone feature dim: {model.backbone.feat_dim}")
 
     # Load backbone weights if provided
     if weights_backbone:

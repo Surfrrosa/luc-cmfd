@@ -360,6 +360,12 @@ class CMFDNet(nn.Module):
         # Extract features
         feats = self.backbone(x)  # (B, C, H', W')
 
+        # Debug: print feature shape on first call
+        if not hasattr(self, '_debug_printed'):
+            print(f"DEBUG: Backbone output shape: {feats.shape}")
+            print(f"DEBUG: Expected channels: {self.backbone.feat_dim}")
+            self._debug_printed = True
+
         # Compute self-correlation (this should use corr.py)
         # For now, create placeholder correlation map
         # In practice, call self_corr from corr.py here
