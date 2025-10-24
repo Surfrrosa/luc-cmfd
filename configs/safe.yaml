@@ -1,0 +1,89 @@
+# SAFE Configuration - Guaranteed to finish in <50% of 4h budget
+# Use this for production runs or when unsure about timing
+
+# Safety limits
+safety:
+  max_images: null
+  max_runtime_hours: 2.0  # Conservative: aim for <2h
+  require_force_for_combined: true
+
+# Model architecture - BASELINE
+model:
+  backbone: 'dinov2_vits14'
+  freeze_backbone: true
+  patch: 12
+  stride: 4
+  top_k: 5
+  use_decoder: true
+  use_strip_pool: false  # OFF for baseline
+
+# Deep PatchMatch - OFF for speed
+patchmatch:
+  enable: false
+
+# Keypoints - OFF for speed
+keypoints:
+  enable: false
+
+# TTA - OFF for speed (adds 4x)
+tta:
+  rot90: false
+  flip_h: false
+  flip_v: false
+
+# Log-polar - OFF
+log_polar:
+  enable: false
+
+# Post-processing - ONLY component pruning enabled
+post:
+  thr: 0.5
+  min_area: 24
+
+  component_pruning:
+    enable: true  # This is fast and effective
+    min_score: 0.3
+    alpha: 0.5
+    beta: 0.5
+    gamma: 0.0
+    size_adaptive: true
+    min_area: 24
+    max_area: null
+
+  periodicity:
+    enable: false  # OFF for speed
+
+  gel_band_prior:
+    enable: false
+
+  morph:
+    close: 2
+    open: 1
+
+# Geometric verification
+geom:
+  model: 'affine'
+  inlier_thresh_px: 3.0
+  max_iters: 1000
+  confidence: 0.99
+  inlier_growth: 5
+
+# Correlation
+correlation:
+  patch: 12
+  stride: 4
+  top_k: 5
+  normalize: true
+
+# Training
+training:
+  batch_size: 16
+  epochs: 50
+  lr: 1e-4
+  val_split: 0.2
+  patience: 10
+
+# Data
+data:
+  image_size: 256
+  augmentation: true

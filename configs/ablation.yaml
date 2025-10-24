@@ -1,0 +1,128 @@
+# Ablation Configuration for SOTA Improvements
+# Enable/disable features for A/B testing
+# DEFAULT: All experimental features OFF except component pruning
+
+# Safety limits
+safety:
+  max_images: null  # Null for no limit, or set integer
+  max_runtime_hours: 4.0  # Abort if projected runtime > this
+  require_force_for_combined: true  # Require --force flag for TTA+PM+KP together
+
+# Model architecture
+model:
+  backbone: 'dinov2_vits14'
+  freeze_backbone: true
+  patch: 12
+  stride: 4
+  top_k: 5
+  use_decoder: true
+  use_strip_pool: false  # Toggle: CMFDFormer-style strip pooling
+
+# Deep PatchMatch proposals
+patchmatch:
+  enable: false  # Toggle: Deep PatchMatch correspondences
+  iters: 3
+  topk: 50
+  score_thr: 0.2
+  use_pyramid: true
+  exclusion_radius: 5
+
+# Keypoint proposals (SIFT/ORB)
+keypoints:
+  enable: false  # Toggle: Keypoint-based proposals
+  method: 'ORB'  # 'SIFT' or 'ORB'
+  max_kp: 1500
+  top_matches: 300
+  ratio_test: 0.75
+  min_distance: 2.0
+
+# Test-Time Augmentation
+tta:
+  rot90: false  # Toggle: 0/90/180/270 degree rotations
+  flip_h: false
+  flip_v: false
+
+# Log-polar pooling for rotation/scale invariance
+log_polar:
+  enable: false  # Toggle: Log-polar correlation pooling
+  radius_bins: 24
+  angle_bins: 32
+
+# Post-processing
+post:
+  # Component-aware pruning
+  component_pruning:
+    enable: true  # Toggle: Score-based component filtering
+    min_score: 0.3
+    alpha: 0.5  # Weight for correlation
+    beta: 0.5  # Weight for inlier ratio
+    gamma: 0.0  # Weight for plausibility prior
+    size_adaptive: true
+    min_area: 24
+    max_area: null
+
+  # Periodicity detection
+  periodicity:
+    enable: false  # Toggle: FFT-based periodic texture detection
+    threshold: 0.3
+    downweight_factor: 0.5
+
+  # Domain-specific priors
+  gel_band_prior:
+    enable: false  # Toggle: Prefer band-shaped components for gels
+    aspect_ratio_threshold: 3.0
+    boost_factor: 1.2
+
+  # Morphological operations
+  morph:
+    close: 2
+    open: 1
+
+  min_area: 24
+
+# Geometric verification (RANSAC)
+geom:
+  model: 'affine'  # 'similarity' or 'affine'
+  inlier_thresh_px: 3.0
+  max_iters: 1000
+  confidence: 0.99
+
+# Correlation computation
+correlation:
+  patch: 12
+  stride: 4
+  top_k: 5
+  normalize: true
+
+# Training
+training:
+  batch_size: 16
+  epochs: 50
+  lr: 1e-4
+  val_split: 0.2
+  patience: 10
+
+# Data
+data:
+  image_size: 256
+  augmentation: true
+
+# Ablation-specific settings
+ablation:
+  # Which features to test
+  test_features:
+    - 'baseline'
+    - 'strip_pool'
+    - 'patchmatch'
+    - 'keypoints'
+    - 'tta_rot90'
+    - 'log_polar'
+    - 'component_pruning'
+    - 'periodicity'
+
+  # Acceptance criteria
+  min_f1_gain: 0.01
+  max_runtime_increase: 0.10  # 10%
+
+  # Dev set size for quick evaluation
+  dev_set_size: 150

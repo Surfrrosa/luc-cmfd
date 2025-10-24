@@ -1,0 +1,602 @@
+[
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/64435.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/13920.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/41816.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/10980.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/29087.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/12574.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/19074.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/16221.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/46098.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/38567.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/44171.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/43810.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/17128.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/6737.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/45400.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/36597.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/64881.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/37149.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/10266.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/12262.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/55667.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/60539.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/12459.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/46006.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/3895.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/46577.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/19130.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/21892.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/55806.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/36794.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/5494.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/41830.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/29675.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/35850.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/54003.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/43810.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/9568.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/47069.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/6932.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/57875.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/25472.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/64717.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/56549.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/22182.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/51891.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/12747.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/31218.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/2357.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/17268.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/47441.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/64120.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/34744.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/19563.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/58588.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/1641.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/29675.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/7274.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/35559.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/60457.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/21770.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/61883.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/40938.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/32818.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/37830.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/27034.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/25142.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/50267.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/25957.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/53912.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/8109.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/31812.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/61903.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/33064.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/2896.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/15285.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/20144.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/25861.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/37361.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/19668.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/6658.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/33287.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/10017.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/19193.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/10570.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/32880.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/53102.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/42427.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/46511.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/7120.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/31891.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/12307.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/56232.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/43324.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/30883.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/5573.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/19622.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/31313.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/26606.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/5250.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/23398.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/56582.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/48997.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/22959.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/64935.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/33160.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/49672.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/51771.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/20833.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/42757.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/23527.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/25064.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/47426.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/14506.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/37556.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/47376.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/18362.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/23772.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/42983.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/60829.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/55247.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/63918.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/14988.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/19986.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/45712.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/59142.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/28412.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/39162.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/44298.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/14114.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/17249.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/1385.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/34672.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/22293.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/3167.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/32880.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/20103.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/53157.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/767.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/19935.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/31942.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/5151.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/63224.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/33273.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/45030.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/37421.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/32945.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/37827.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/authentic/32170.png",
+    "label": "authentic"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/56402.png",
+    "label": "forged"
+  },
+  {
+    "image": "data/recodai-luc-scientific-image-forgery-detection/train_images/forged/28279.png",
+    "label": "forged"
+  }
+]

@@ -1,0 +1,105 @@
+# ACCURACY Configuration - Maximum F1, runtime secondary
+# Enable multiple SOTA features for best performance
+# Target: <4h on full test set
+
+# Safety limits
+safety:
+  max_images: null
+  max_runtime_hours: 3.5  # Conservative buffer under 4h limit
+  require_force_for_combined: false  # Allow combined features
+
+# Model architecture
+model:
+  backbone: 'dinov2_vits14'
+  freeze_backbone: true
+  patch: 12
+  stride: 4
+  top_k: 5
+  use_decoder: true
+  use_strip_pool: true  # ENABLED: +0.01-0.02 F1, minimal cost
+
+# Deep PatchMatch proposals
+patchmatch:
+  enable: true  # ENABLED: +0.02-0.04 F1, worth the cost
+  iters: 3
+  topk: 50
+  score_thr: 0.2
+  use_pyramid: true
+  exclusion_radius: 5
+
+# Keypoint proposals
+keypoints:
+  enable: true  # ENABLED: +0.01-0.02 F1, handles rotation/scale
+  method: 'ORB'  # Faster than SIFT, still effective
+  max_kp: 1500
+  top_matches: 300
+  ratio_test: 0.75
+  min_distance: 2.0
+
+# Test-Time Augmentation
+tta:
+  rot90: false  # OFF: 4x cost, use only if absolutely needed
+  flip_h: false
+  flip_v: false
+
+# Log-polar pooling
+log_polar:
+  enable: false  # Test separately if rotation issues arise
+
+# Post-processing - AGGRESSIVE quality filtering
+post:
+  thr: 0.45  # Slightly lower threshold for higher recall
+
+  component_pruning:
+    enable: true  # ENABLED: improves precision
+    min_score: 0.25  # Lower threshold to keep more components
+    alpha: 0.6  # Higher weight on correlation
+    beta: 0.4  # Weight on inlier ratio
+    gamma: 0.0
+    size_adaptive: true
+    min_area: 16  # Lower min area to catch smaller forgeries
+    max_area: null
+
+  periodicity:
+    enable: true  # ENABLED: reduce false positives on textures
+    threshold: 0.3
+    downweight_factor: 0.5
+
+  gel_band_prior:
+    enable: true  # ENABLED: domain-specific for biomedical
+    aspect_ratio_threshold: 3.0
+    boost_factor: 1.2
+
+  morph:
+    close: 3  # More aggressive closing
+    open: 1
+
+  min_area: 16  # Lower than safe config
+
+# Geometric verification - MORE STRICT
+geom:
+  model: 'affine'  # Affine allows more complex transforms
+  inlier_thresh_px: 2.5  # Slightly looser for more matches
+  max_iters: 2000  # More RANSAC iterations for accuracy
+  confidence: 0.99
+  inlier_growth: 6  # Larger growth for better coverage
+
+# Correlation
+correlation:
+  patch: 12
+  stride: 4
+  top_k: 5
+  normalize: true
+
+# Training
+training:
+  batch_size: 16
+  epochs: 50
+  lr: 1e-4
+  val_split: 0.2
+  patience: 10
+
+# Data
+data:
+  image_size: 256
+  augmentation: true
