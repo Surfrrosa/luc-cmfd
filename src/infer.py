@@ -443,9 +443,18 @@ def main(
 
     # Create dataset
     logger.info("Creating dataset...")
+    # Handle both root dir and direct test_images path
+    image_path = Path(image_dir)
+    if image_path.name == "test_images":
+        # User passed test_images directly, use parent as root
+        root_dir = image_path.parent
+    else:
+        # User passed root directory
+        root_dir = image_path
+
     dataset = CMFDDataset(
-        image_dir=image_dir,
-        normalize=True
+        root=root_dir,
+        split="test"  # Test split doesn't require masks
     )
 
     dataloader = DataLoader(
