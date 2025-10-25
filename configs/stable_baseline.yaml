@@ -13,7 +13,7 @@ model:
 
 # Training - STABILIZED PARAMETERS
 training:
-  batch_size: 8  # Increased from 4 for stability
+  batch_size: 4  # Limited by GPU memory (unfold operation OOMs at 8)
   epochs: 10  # Reduced from 50 (quota constraints)
   lr: 3e-5  # REDUCED from 1e-4 (key fix!)
   val_split: 0.2
