@@ -94,7 +94,12 @@ def train_epoch(
     optimizer: optim.Optimizer,
     scaler: GradScaler,
     device: torch.device,
-    logger
+    logger,
+    grad_accum_steps: int = 1,
+    clip_grad: float = 0.0,
+    log_train_f1: bool = False,
+    scheduler_warmup = None,
+    global_step: int = 0
 ) -> dict:
     """
     Train for one epoch.
@@ -106,6 +111,11 @@ def train_epoch(
         scaler: AMP gradient scaler
         device: Device
         logger: Logger
+        grad_accum_steps: Gradient accumulation steps
+        clip_grad: Gradient clipping value (0 = no clipping)
+        log_train_f1: Whether to log per-batch F1
+        scheduler_warmup: Warmup scheduler (optional)
+        global_step: Global step counter for warmup
 
     Returns:
         Dictionary with epoch statistics
@@ -114,47 +124,81 @@ def train_epoch(
 
     total_loss = 0
     total_f1 = 0
+    total_grad_norm = 0
     n_batches = 0
+    accum_loss = 0
 
     pbar = tqdm(dataloader, desc="Training")
 
-    for batch in pbar:
+    for batch_idx, batch in enumerate(pbar):
         images = batch['image'].to(device)
         masks = batch['mask'].to(device)
-
-        optimizer.zero_grad()
 
         # Forward with AMP
         with autocast():
             output = model(images)
             logits = output['logits']
 
-            # Compute loss
-            loss = combined_loss(logits, masks)
+            # Compute loss (normalize by accumulation steps)
+            loss = combined_loss(logits, masks) / grad_accum_steps
 
         # Backward with AMP
         scaler.scale(loss).backward()
-        scaler.step(optimizer)
-        scaler.update()
+        accum_loss += loss.item() * grad_accum_steps
 
-        # Metrics
-        with torch.no_grad():
-            metrics = compute_metrics(logits, masks)
+        # Update weights every grad_accum_steps
+        if (batch_idx + 1) % grad_accum_steps == 0:
+            # Unscale gradients for clipping
+            scaler.unscale_(optimizer)
 
-        total_loss += loss.item()
-        total_f1 += metrics['f1']
+            # Gradient clipping
+            grad_norm = 0.0
+            if clip_grad > 0:
+                grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), clip_grad)
+            else:
+                # Still compute grad norm for logging
+                grad_norm = torch.sqrt(sum(p.grad.data.norm(2)**2 for p in model.parameters() if p.grad is not None))
+
+            total_grad_norm += grad_norm.item()
+
+            # Optimizer step
+            scaler.step(optimizer)
+            scaler.update()
+            optimizer.zero_grad()
+
+            # Warmup scheduler step
+            if scheduler_warmup is not None:
+                scheduler_warmup.step()
+
+            global_step += 1
+
+        # Metrics (optional)
+        metrics = {}
+        if log_train_f1:
+            with torch.no_grad():
+                metrics = compute_metrics(logits, masks)
+                total_f1 += metrics['f1']
+
+        total_loss += accum_loss
+        accum_loss = 0
         n_batches += 1
 
         # Update progress bar
-        pbar.set_postfix({
-            'loss': f"{loss.item():.4f}",
-            'f1': f"{metrics['f1']:.4f}"
-        })
+        postfix = {'loss': f"{loss.item() * grad_accum_steps:.4f}"}
+        if log_train_f1:
+            postfix['f1'] = f"{metrics['f1']:.4f}"
+        pbar.set_postfix(postfix)
 
-    return {
+    result = {
         'loss': total_loss / n_batches,
-        'f1': total_f1 / n_batches
+        'grad_norm': total_grad_norm / (n_batches / grad_accum_steps),
+        'global_step': global_step
     }
+
+    if log_train_f1:
+        result['f1'] = total_f1 / n_batches
+
+    return result
 
 
 @torch.no_grad()
@@ -241,7 +285,12 @@ def main(
     val_split: float = 0.2,
     batch_size: int = None,
     lr: float = None,
-    seed: int = 42
+    seed: int = 42,
+    grad_accum_steps: int = 1,
+    clip_grad: float = 0.0,
+    warmup_steps: int = 0,
+    sched: str = 'plateau',
+    log_train_f1: bool = True
 ):
     """
     Main training function with config support.
@@ -366,10 +415,32 @@ def main(
         lr=lr
     )
 
-    # Scheduler
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, mode='max', factor=0.5, patience=5
-    )
+    # Schedulers
+    scheduler_warmup = None
+    scheduler_main = None
+
+    if warmup_steps > 0:
+        # Linear warmup scheduler
+        def warmup_lambda(step):
+            if step < warmup_steps:
+                return float(step) / float(max(1, warmup_steps))
+            return 1.0
+        scheduler_warmup = optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=warmup_lambda)
+        logger.info(f"Using warmup scheduler for {warmup_steps} steps")
+
+    if sched == 'cosine':
+        # Cosine annealing after warmup
+        total_steps = len(train_loader) * epochs // grad_accum_steps
+        scheduler_main = optim.lr_scheduler.CosineAnnealingLR(
+            optimizer, T_max=total_steps - warmup_steps, eta_min=lr * 0.01
+        )
+        logger.info(f"Using cosine annealing scheduler (total_steps={total_steps})")
+    else:
+        # ReduceLROnPlateau (default)
+        scheduler_main = optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer, mode='max', factor=0.5, patience=5
+        )
+        logger.info("Using ReduceLROnPlateau scheduler")
 
     # AMP scaler
     scaler = GradScaler() if amp else None
@@ -377,8 +448,12 @@ def main(
     # Training loop
     best_f1 = 0
     patience_counter = 0
+    global_step = 0
 
     logger.info("Starting training...")
+    logger.info(f"Gradient clipping: {clip_grad if clip_grad > 0 else 'disabled'}")
+    logger.info(f"Gradient accumulation: {grad_accum_steps} steps")
+    logger.info(f"Log train F1: {log_train_f1}")
 
     # Initialize CSV log if requested
     if log_csv:
@@ -392,11 +467,30 @@ def main(
         # Train
         with Timer("Train epoch", logger):
             if amp and scaler:
-                train_stats = train_epoch(model, train_loader, optimizer, scaler, device, logger)
+                train_stats = train_epoch(
+                    model, train_loader, optimizer, scaler, device, logger,
+                    grad_accum_steps=grad_accum_steps,
+                    clip_grad=clip_grad,
+                    log_train_f1=log_train_f1,
+                    scheduler_warmup=scheduler_warmup,
+                    global_step=global_step
+                )
             else:
-                train_stats = train_epoch(model, train_loader, optimizer, GradScaler(), device, logger)
+                train_stats = train_epoch(
+                    model, train_loader, optimizer, GradScaler(), device, logger,
+                    grad_accum_steps=grad_accum_steps,
+                    clip_grad=clip_grad,
+                    log_train_f1=log_train_f1,
+                    scheduler_warmup=scheduler_warmup,
+                    global_step=global_step
+                )
 
-        logger.info(f"Train - Loss: {train_stats['loss']:.4f}, F1: {train_stats['f1']:.4f}")
+        global_step = train_stats['global_step']
+
+        log_msg = f"Train - Loss: {train_stats['loss']:.4f}, Grad Norm: {train_stats['grad_norm']:.2f}"
+        if log_train_f1:
+            log_msg += f", F1: {train_stats['f1']:.4f}"
+        logger.info(log_msg)
 
         # Validate
         with Timer("Validation", logger):
@@ -404,8 +498,10 @@ def main(
 
         logger.info(f"Val - Loss: {val_stats['loss']:.4f}, F1: {val_stats['f1']:.4f}")
 
-        # Scheduler step
-        scheduler.step(val_stats['f1'])
+        # Scheduler step (only for ReduceLROnPlateau, cosine is stepped per-batch)
+        if sched == 'plateau':
+            scheduler_main.step(val_stats['f1'])
+
         current_lr = optimizer.param_groups[0]['lr']
 
         # Save best model
@@ -423,7 +519,8 @@ def main(
         # Log to CSV
         if log_csv:
             with open(log_csv, 'a') as f:
-                f.write(f"{epoch+1},{train_stats['loss']:.6f},{train_stats['f1']:.6f},"
+                train_f1_str = f"{train_stats['f1']:.6f}" if log_train_f1 else "N/A"
+                f.write(f"{epoch+1},{train_stats['loss']:.6f},{train_f1_str},"
                        f"{val_stats['loss']:.6f},{val_stats['f1']:.6f},{current_lr:.8f},"
                        f"{1 if is_best else 0}\n")
 
@@ -490,6 +587,16 @@ if __name__ == '__main__':
                         help='Learning rate (overrides config if provided)')
     parser.add_argument('--seed', type=int, default=42,
                         help='Random seed')
+    parser.add_argument('--grad_accum_steps', type=int, default=1,
+                        help='Gradient accumulation steps')
+    parser.add_argument('--clip_grad', type=float, default=0.0,
+                        help='Gradient clipping value (0 = no clipping)')
+    parser.add_argument('--warmup_steps', type=int, default=0,
+                        help='Number of warmup steps for learning rate')
+    parser.add_argument('--sched', type=str, default='plateau', choices=['plateau', 'cosine'],
+                        help='Learning rate scheduler type')
+    parser.add_argument('--log_train_f1', type=int, default=0,
+                        help='Log per-batch training F1 (1=on, 0=off, recommended off for imbalanced data)')
 
     args = parser.parse_args()
 
@@ -506,5 +613,10 @@ if __name__ == '__main__':
         val_split=args.val_split,
         batch_size=args.batch_size,
         lr=args.lr,
-        seed=args.seed
+        seed=args.seed,
+        grad_accum_steps=args.grad_accum_steps,
+        clip_grad=args.clip_grad,
+        warmup_steps=args.warmup_steps,
+        sched=args.sched,
+        log_train_f1=bool(args.log_train_f1)
     )
