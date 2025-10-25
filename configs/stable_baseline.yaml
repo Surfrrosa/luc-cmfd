@@ -1,0 +1,29 @@
+# STABLE BASELINE - Lower LR for training stability
+# Based on accuracy.yaml but with safer hyperparameters
+
+# Model architecture (same as accuracy.yaml)
+model:
+  backbone: 'dinov2_vits14'
+  freeze_backbone: true
+  patch: 12
+  stride: 4
+  top_k: 5
+  use_decoder: true
+  use_strip_pool: false  # Disabled for speed
+
+# Training - STABILIZED PARAMETERS
+training:
+  batch_size: 8  # Increased from 4 for stability
+  epochs: 10  # Reduced from 50 (quota constraints)
+  lr: 3e-5  # REDUCED from 1e-4 (key fix!)
+  val_split: 0.2
+  patience: 5  # Reduced patience for faster early stopping
+
+# Post-processing - simplified
+post:
+  thr: 0.45
+  min_area: 16
+
+  morph:
+    close: 3
+    open: 1
