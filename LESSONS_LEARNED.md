@@ -3,6 +3,7 @@
 ## Session Summary
 First Kaggle training attempt. Hit 7 major issues before successful training started.
 Second training attempt ran out of GPU quota due to x2 GPU configuration.
+Third lesson: Model file lost when quota exhausted - learned about Kaggle file persistence.
 
 ---
 
@@ -233,6 +234,119 @@ Add to pre-training checklist:
 
 ---
 
+## Bug #9: Kaggle File Persistence and Model Loss
+
+### The Problem
+Trained for 7 epochs (~12 hours), saw "Saved best model" messages, but when checking `/kaggle/working/best_model.pth` after quota exhaustion - **file was gone**.
+
+**What happened:**
+- Training saved `best_model.pth` to `/kaggle/working/` at epochs 4, 5, 6
+- GPU quota ran out at 85% of epoch 7
+- Kaggle killed the session immediately
+- `/kaggle/working/` directory was wiped
+- Model file permanently lost
+
+### The Root Cause
+**Kaggle's file system has two types of storage:**
+
+1. **Temporary (`/kaggle/working/`):**
+   - Fast, but **ephemeral**
+   - Cleared when session ends
+   - Cleared when quota exhausted
+   - **NOT preserved unless you "Save Version"**
+
+2. **Permanent (Kaggle Datasets or Output after "Save & Run All"):**
+   - Survives session termination
+   - Can be accessed across notebooks
+   - Requires explicit action to save
+
+**Our mistake:** We saved to `/kaggle/working/` without:
+- Downloading periodically during training
+- Copying to a Kaggle Dataset
+- Running "Save & Run All" to persist output
+
+### The Fix
+
+**Immediate actions (during training):**
+1. Download `best_model.pth` every 5-10 epochs manually
+2. Add code to auto-copy to Kaggle Dataset every N epochs
+3. Monitor GPU quota and download before it runs out
+
+**Long-term solution:**
+Create a Kaggle Dataset for persistent model storage:
+
+```python
+# In training notebook, add periodic saves
+import shutil
+from pathlib import Path
+
+def save_to_dataset(model_path, epoch):
+    """Save model to Kaggle Dataset (persistent storage)."""
+    dataset_dir = Path('/kaggle/working/model-checkpoints')
+    dataset_dir.mkdir(exist_ok=True)
+
+    checkpoint_name = f'best_model_epoch{epoch}.pth'
+    dest = dataset_dir / checkpoint_name
+    shutil.copy(model_path, dest)
+    print(f"✓ Copied to persistent storage: {dest}")
+
+# In training loop, after saving best model:
+if val_stats['f1'] > best_f1:
+    best_f1 = val_stats['f1']
+    torch.save(model.state_dict(), weights_out)
+    logger.info(f"Saved best model (F1: {best_f1:.4f})")
+
+    # CRITICAL: Also save to dataset every 5 epochs
+    if (epoch + 1) % 5 == 0:
+        save_to_dataset(weights_out, epoch + 1)
+```
+
+**Post-training:**
+Always create a new cell immediately after training and download:
+```python
+from IPython.display import FileLink
+FileLink('/kaggle/working/best_model.pth')
+```
+
+### Why This Is Critical
+
+**Time lost:** All 12 hours of training wasted (7 epochs)
+**Model performance:** F1 ~0.26-0.28 at best epoch (epoch 4)
+**GPU quota:** 30 hours consumed with nothing to show
+
+This is the **most expensive mistake** so far - not in debugging time, but in lost GPU quota and training progress.
+
+### Prevention Checklist
+
+**Before starting training:**
+- [ ] Create Kaggle Dataset for model checkpoints (if doing long runs)
+- [ ] Add periodic download reminders in notebook
+
+**During training (every 5 epochs):**
+- [ ] Download `best_model.pth` manually
+- [ ] Check GPU quota remaining
+- [ ] If quota < 2 hours, stop training and download immediately
+
+**After training completes:**
+- [ ] Download model BEFORE clicking anything else
+- [ ] Verify file downloaded successfully (check file size)
+- [ ] Upload to GitHub or other permanent storage
+
+**Understanding "Save & Run All" vs "Quick Save":**
+- **Quick Save:** Just saves notebook code, NOT files in `/kaggle/working/`
+- **Save & Run All:** Runs notebook + saves output (but requires GPU quota!)
+- **Save Version:** Saves notebook snapshot + preserves output tab files
+- **None of these save `/kaggle/working/` unless you use Output or Datasets!**
+
+**The golden rule:**
+> If it's in `/kaggle/working/` and you haven't downloaded it or copied it to a Dataset, it WILL be lost when the session ends.
+
+**Time lost:** 12 hours of training (7 epochs)
+**Model lost:** F1 ~0.26-0.28 (all epochs)
+**GPU quota wasted:** 30 hours with no model to show for it
+
+---
+
 ## Impact Summary
 
 | Issue | Time Lost | Severity | Prevention |
@@ -245,9 +359,11 @@ Add to pre-training checklist:
 | Import caching | 1 hour | Medium | Restart kernel after git pull |
 | Nested repo | 45 mins | Medium | Check paths before clone |
 | **GPU x2 quota drain** | **30 GPU hours** | **Critical** | **Verify single GPU before training** |
+| **Model file loss** | **7 epochs (12 hours)** | **CATASTROPHIC** | **Download periodically + use Datasets** |
 
 **Total debugging time:** ~5.5 hours
 **Total wasted GPU quota:** 30 hours (1 week)
+**Total lost training progress:** 7 epochs with no recoverable model
 
 ---
 
@@ -277,6 +393,9 @@ Hardcoded paths break easily. Use path detection with fallbacks.
 ### 8. **ALWAYS Check GPU Settings Before Training**
 Kaggle's GPU x2 option drains quota 2x faster without any benefit for our single-model training. Always verify you're using single GPU.
 
+### 9. **Download Models Periodically - Kaggle Files Are Ephemeral**
+`/kaggle/working/` is TEMPORARY storage. When quota runs out or session ends, ALL files are lost. Download important files every few epochs, or use Kaggle Datasets for persistent storage.
+
 ---
 
 ## 🔄 Process Improvements
@@ -299,6 +418,19 @@ Kaggle's GPU x2 option drains quota 2x faster without any benefit for our single
 3. [ ] Check quota remaining (need >20 hours)
 4. [ ] Test with `epochs=1` first
 5. [ ] Double-check accelerator setting in session options
+6. [ ] **Set calendar reminder to download model every 5 epochs**
+7. [ ] Create Kaggle Dataset for checkpoints (if run >10 epochs)
+
+### During Training (Every 5 Epochs):
+1. [ ] **Download current best_model.pth**
+2. [ ] Check GPU quota remaining
+3. [ ] If quota <2 hours left: stop, download, continue later
+
+### Immediately After Training:
+1. [ ] **Download best_model.pth FIRST** (before anything else!)
+2. [ ] Verify file size (should be ~100-500 MB)
+3. [ ] Upload to permanent storage (GitHub, Google Drive, etc.)
+4. [ ] Only then click "Save Version" or navigate away
 
 ---
 
@@ -310,9 +442,17 @@ Kaggle's GPU x2 option drains quota 2x faster without any benefit for our single
 
 ---
 
-**Total issues resolved:** 8
-**Training status:** ⚠️ Ran out of GPU quota at epoch 7 due to x2 GPUs
+**Total issues resolved:** 9
+**Training status:** Model lost - need to retrain from scratch with improved safeguards
+**Critical lessons:**
+- GPU x2 drains quota 2x faster
+- Kaggle files are temporary - download frequently!
+- 7 epochs of work lost forever - painful but valuable lesson
+
 **Next steps:**
-- Wait for weekly GPU quota reset
-- Retry with SINGLE GPU (not x2)
-- Use naming format: `luc-cmfd-{milestone}-{purpose}-v{number}`
+- Wait for weekly GPU quota reset (check Settings → Account for date)
+- Create new notebook: `luc-cmfd-m1-baseline-v2`
+- **BEFORE training:** Set up periodic download strategy
+- **DURING training:** Download model every 5 epochs manually
+- **Use SINGLE GPU only** (verify before each run)
+- Consider adding auto-save to Kaggle Dataset for runs >10 epochs
