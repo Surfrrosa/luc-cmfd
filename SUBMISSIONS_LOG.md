@@ -6,7 +6,7 @@
 
 ---
 
-## 📊 Submissions Tracker
+## Submissions Tracker
 
 | # | Date | Submission File | Experiment | Val F1 | Public F1 | Private F1 | Selected | Notes |
 |---|------|----------------|------------|--------|-----------|------------|----------|-------|
@@ -22,7 +22,7 @@
 
 ---
 
-## 🎯 Final Submission Selection
+## Final Submission Selection
 
 **Deadline to select:** [Competition end date - 2 weeks]
 
@@ -46,7 +46,7 @@
 
 ---
 
-## 📝 Detailed Submission Records
+## Detailed Submission Records
 
 ### Submission #001: M1-baseline (Example)
 
@@ -121,7 +121,7 @@
 
 ---
 
-## 📈 Score Analysis
+## Score Analysis
 
 ### Public vs Private LB Gap
 
@@ -148,7 +148,7 @@ Track overfitting by comparing public and validation scores:
 
 ---
 
-## 🧪 Experiments Summary
+## Experiments Summary
 
 Quick reference of what each milestone explored:
 
@@ -161,7 +161,7 @@ Quick reference of what each milestone explored:
 
 ---
 
-## ⚠️ Important Reminders
+## Important Reminders
 
 - [ ] **2 submissions per day limit** - Don't waste them!
 - [ ] **Select 2 finals before deadline** - Or Kaggle picks randomly!
@@ -171,7 +171,7 @@ Quick reference of what each milestone explored:
 
 ---
 
-## 🎓 Lessons Learned
+## Lessons Learned
 
 ### What Worked
 -
@@ -184,7 +184,7 @@ Quick reference of what each milestone explored:
 
 ---
 
-## 📞 Pre-Submission Checklist
+## Pre-Submission Checklist
 
 Before each submission, verify:
 

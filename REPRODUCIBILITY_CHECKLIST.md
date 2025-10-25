@@ -5,7 +5,7 @@
 
 ---
 
-## 🎯 Why This Matters
+## Why This Matters
 
 Kaggle competitions require top finishers to **share reproducible code**. If the hosts can't reproduce your results, you may be **disqualified** even if you placed first!
 
@@ -13,7 +13,7 @@ This checklist ensures you meet all reproducibility requirements.
 
 ---
 
-## ✅ Before Each Training Run
+## Before Each Training Run
 
 - [ ] **Create experiment directory**
   ```bash
@@ -42,7 +42,7 @@ This checklist ensures you meet all reproducibility requirements.
 
 ---
 
-## ✅ During Training
+## During Training
 
 - [ ] **Log all metrics**
   ```bash
@@ -63,7 +63,7 @@ This checklist ensures you meet all reproducibility requirements.
 
 ---
 
-## ✅ After Training Completes
+## After Training Completes
 
 - [ ] **Capture full environment**
   ```bash
@@ -88,7 +88,7 @@ This checklist ensures you meet all reproducibility requirements.
 
 ---
 
-## ✅ Before Each Submission
+## Before Each Submission
 
 - [ ] **Validate submission format**
   ```bash
@@ -116,7 +116,7 @@ This checklist ensures you meet all reproducibility requirements.
 
 ---
 
-## ✅ For Final Submission (Top 3 Finishers)
+## For Final Submission (Top 3 Finishers)
 
 If you place in top 3, you'll need to provide:
 
@@ -173,7 +173,7 @@ If you place in top 3, you'll need to provide:
 
 ---
 
-## ✅ Reproducibility Testing
+## Reproducibility Testing
 
 Before final submission, test that your results are reproducible:
 
@@ -212,7 +212,7 @@ Before final submission, test that your results are reproducible:
 
 ---
 
-## 📊 What Gets Tracked Automatically
+## What Gets Tracked Automatically
 
 Our infrastructure already tracks:
 
@@ -229,7 +229,7 @@ You just need to:
 
 ---
 
-## 🚨 Common Reproducibility Issues
+## Common Reproducibility Issues
 
 ### Issue 1: "Different results on different GPUs"
 **Cause:** GPU-specific optimizations (cuDNN, TensorCores)
@@ -253,7 +253,7 @@ You just need to:
 
 ---
 
-## 📝 Quick Reference Commands
+## Quick Reference Commands
 
 ### Start new experiment
 ```bash
@@ -278,7 +278,7 @@ git log -1  # Shows current commit hash
 
 ---
 
-## ✅ Final Pre-Competition Checklist
+## Final Pre-Competition Checklist
 
 Two weeks before competition end:
 

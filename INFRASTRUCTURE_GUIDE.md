@@ -5,7 +5,7 @@
 
 ---
 
-## 🎯 Overview
+## Overview
 
 We now have a complete infrastructure for efficient iteration during the 3-month competition:
 
@@ -18,9 +18,9 @@ We now have a complete infrastructure for efficient iteration during the 3-month
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
-### 1. Setup New Experiment
+### Setup New Experiment
 
 ```bash
 python scripts/setup_experiment.py \
@@ -40,7 +40,7 @@ runs/2025-10-24_15-30-00_M1-baseline/
     └── README.md            # Usage instructions
 ```
 
-### 2. Train with Logging
+### Train with Logging
 
 ```bash
 python src/train.py \
@@ -56,7 +56,7 @@ python src/train.py \
 - Best model saved when validation F1 improves
 - After training completes, validation predictions saved for fast sweeps
 
-### 3. Visualize Predictions (Sanity Check)
+### Visualize Predictions (Sanity Check)
 
 ```bash
 python scripts/visualize_predictions.py \
@@ -74,7 +74,7 @@ python scripts/visualize_predictions.py \
 - F1 score computed for each sample
 - Summary stats for thresholds 0.3, 0.4, 0.5, 0.6
 
-### 4. Sweep Post-Processing (Quick Wins)
+### Sweep Post-Processing (Quick Wins)
 
 ```bash
 python scripts/sweep_threshold.py \
@@ -94,7 +94,7 @@ threshold,min_area,close_size,open_size,mean_f1,std_f1,n_images
 
 **Benefit:** Find best threshold/min_area in minutes instead of retraining!
 
-### 5. Create Submission
+### Create Submission
 
 ```bash
 python scripts/create_submission.py \
@@ -116,7 +116,7 @@ python scripts/create_submission.py \
 
 ---
 
-## 📊 Analyzing Results
+## Analyzing Results
 
 ### View Training Progress
 
@@ -181,7 +181,7 @@ cat runs/2025-10-24_15-30-00_M1-baseline/metadata.json
 
 ---
 
-## 🔧 Advanced Usage
+## Advanced Usage
 
 ### Custom Threshold Sweep
 
@@ -216,7 +216,7 @@ python scripts/sweep_threshold.py --val_preds preds.npz --close_size 5
 
 ---
 
-## 📁 Directory Structure
+## Directory Structure
 
 Recommended structure for competition:
 
@@ -245,41 +245,41 @@ luc-cmfd/
 
 ---
 
-## 💡 Tips & Best Practices
+## Tips & Best Practices
 
-### 1. Always Use Experiment Directories
+### Always Use Experiment Directories
 - ❌ Don't scatter files in `/kaggle/working/`
 - ✅ Use `setup_experiment.py` for every run
 - **Why:** Easy to compare, reproduce, and share results
 
-### 2. Save Validation Predictions Early
+### Save Validation Predictions Early
 - ❌ Don't wait until you need them
 - ✅ Use `--save_val_preds` from first training
 - **Why:** Enables fast iteration without GPU time
 
-### 3. Check Sanity Visualizations
+### Check Sanity Visualizations
 - ❌ Don't skip visual checks
 - ✅ Run `visualize_predictions.py` after every training
 - **Why:** Catches bugs like all-black predictions, inverted masks, etc.
 
-### 4. Track Metadata
+### Track Metadata
 - ❌ Don't forget which git commit you used
 - ✅ Use `setup_experiment.py` to auto-track git hash
 - **Why:** Reproducibility when you want to revisit old runs
 
-### 5. Compare Apples to Apples
+### Compare Apples to Apples
 - ❌ Don't compare F1 scores from different validation splits
 - ✅ Use same seed for train/val split across experiments
 - **Why:** Fair comparison between models
 
-### 6. Log Everything
+### Log Everything
 - ❌ Don't rely on terminal output
 - ✅ Use `--log_csv` to save metrics
 - **Why:** Terminal output disappears, CSVs are permanent
 
 ---
 
-## 🚨 Common Issues
+## Common Issues
 
 ### Issue: "No module named 'case_id'"
 **Cause:** Dataset doesn't return case_id in batch
@@ -299,7 +299,7 @@ luc-cmfd/
 
 ---
 
-## 📚 Related Documentation
+## Related Documentation
 
 - **KAGGLE_SETUP.md** - How to run training on Kaggle
 - **LESSONS_LEARNED.md** - Technical issues we solved
@@ -308,7 +308,7 @@ luc-cmfd/
 
 ---
 
-## 🎯 Next Steps
+## Next Steps
 
 After training completes:
 
