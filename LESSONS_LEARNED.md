@@ -360,10 +360,12 @@ This is the **most expensive mistake** so far - not in debugging time, but in lo
 | Nested repo | 45 mins | Medium | Check paths before clone |
 | **GPU x2 quota drain** | **30 GPU hours** | **Critical** | **Verify single GPU before training** |
 | **Model file loss** | **7 epochs (12 hours)** | **CATASTROPHIC** | **Download periodically + use Datasets** |
+| ReduceLROnPlateau verbose | 10 mins | Low | Test locally before Kaggle |
 
-**Total debugging time:** ~5.5 hours
+**Total debugging time:** ~6 hours
 **Total wasted GPU quota:** 30 hours (1 week)
 **Total lost training progress:** 7 epochs with no recoverable model
+**Local testing:** ✅ Working on CPU
 
 ---
 
@@ -442,14 +444,43 @@ Kaggle's GPU x2 option drains quota 2x faster without any benefit for our single
 
 ---
 
-**Total issues resolved:** 9
-**Training status:** Model lost - need to retrain from scratch with improved safeguards
+## Bug #10: PyTorch ReduceLROnPlateau Verbose Parameter (Local Testing)
+
+### The Problem
+**Error:** `TypeError: ReduceLROnPlateau.__init__() got an unexpected keyword argument 'verbose'`
+
+**Root cause:** The `verbose` parameter was removed in PyTorch 2.0+, but older code may still use it.
+
+### The Fix
+```python
+# WRONG - Fails on PyTorch 2.0+
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+    optimizer, mode='max', factor=0.5, patience=5, verbose=True
+)
+
+# CORRECT - Parameter removed
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+    optimizer, mode='max', factor=0.5, patience=5
+)
+```
+
+**Files affected:** `train_kaggle.py:210-212`
+
+**Impact:** Low - Only affects local testing, not Kaggle
+**Time lost:** 10 minutes
+
+---
+
+**Total issues resolved:** 10
+**Training status:** Local testing successful! Ready for Kaggle retry.
 **Critical lessons:**
 - GPU x2 drains quota 2x faster
 - Kaggle files are temporary - download frequently!
 - 7 epochs of work lost forever - painful but valuable lesson
+- Test locally first to catch compatibility issues
 
 **Next steps:**
+- ✅ Local testing works on CPU
 - Wait for weekly GPU quota reset (check Settings → Account for date)
 - Create new notebook: `luc-cmfd-m1-baseline-v2`
 - **BEFORE training:** Set up periodic download strategy

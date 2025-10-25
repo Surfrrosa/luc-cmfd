@@ -210,6 +210,7 @@ def main(
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, mode='max', factor=0.5, patience=5
     )
+    # Note: 'verbose' parameter removed - not supported in all PyTorch versions
 
     # AMP scaler
     scaler = GradScaler()
