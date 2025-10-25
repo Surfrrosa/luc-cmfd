@@ -1,7 +1,8 @@
-# Technical Lessons Learned - 2025-10-24
+# Technical Lessons Learned - 2025-10-24/25
 
 ## Session Summary
 First Kaggle training attempt. Hit 7 major issues before successful training started.
+Second training attempt ran out of GPU quota due to x2 GPU configuration.
 
 ---
 
@@ -190,7 +191,49 @@ for c in candidates:
 
 ---
 
-## 📊 Impact Summary
+## Bug #8: Kaggle GPU x2 Quota Drain
+
+### The Problem
+Enabled "GPU T4 x2" (2 GPUs) in Kaggle notebook settings.
+
+**Result:** Used 30 hours of quota in ~12 hours of real time!
+
+**What happened:**
+- Training started at ~3-4pm on 2025-10-24
+- Ran for ~12 real hours
+- Quota showed 00:00 / 30 hrs at ~3am on 2025-10-25
+- Training stopped at 85% through epoch 7
+
+### The Root Cause
+Kaggle counts GPU x2 as **2x quota usage**:
+- 1 real hour with 2 GPUs = 2 quota hours consumed
+- 12 real hours × 2 GPUs = 24 quota hours
+- Plus ~6 hours from earlier testing = 30 hours used
+
+### The Fix
+**ALWAYS use single GPU for training:**
+1. In notebook: Session options → Accelerator → **GPU T4** (not x2)
+2. Verify setting before starting long runs
+3. Check quota remaining: Settings → Account → GPU usage
+
+### Why x2 Doesn't Help Anyway
+Our code doesn't use multi-GPU training (no DataParallel or DistributedDataParallel).
+- x2 wastes quota without speedup
+- Single GPU is sufficient for our model size
+- batch_size=4 fits easily on one T4
+
+### Prevention
+Add to pre-training checklist:
+- [ ] Verify accelerator is "GPU T4" (single, not x2)
+- [ ] Check GPU quota remaining (need >15 hours for full run)
+- [ ] Use notebook naming to remind: `luc-cmfd-m1-baseline-v2` (no "2gpu" in name)
+
+**Time lost:** Entire week's GPU quota (30 hours)
+**Best model saved:** Epoch 4-6, F1 ~0.26-0.28 (lower than expected)
+
+---
+
+## Impact Summary
 
 | Issue | Time Lost | Severity | Prevention |
 |-------|-----------|----------|------------|
@@ -201,8 +244,10 @@ for c in candidates:
 | YAML types | 15 mins | Low | Explicit type conversion |
 | Import caching | 1 hour | Medium | Restart kernel after git pull |
 | Nested repo | 45 mins | Medium | Check paths before clone |
+| **GPU x2 quota drain** | **30 GPU hours** | **Critical** | **Verify single GPU before training** |
 
-**Total:** ~5.5 hours of debugging
+**Total debugging time:** ~5.5 hours
+**Total wasted GPU quota:** 30 hours (1 week)
 
 ---
 
@@ -229,6 +274,9 @@ When you need multiples of both A and B, use LCM(A,B), not just B.
 ### 7. **Auto-Detect Paths**
 Hardcoded paths break easily. Use path detection with fallbacks.
 
+### 8. **ALWAYS Check GPU Settings Before Training**
+Kaggle's GPU x2 option drains quota 2x faster without any benefit for our single-model training. Always verify you're using single GPU.
+
 ---
 
 ## 🔄 Process Improvements
@@ -246,9 +294,11 @@ Hardcoded paths break easily. Use path detection with fallbacks.
 3. [ ] Verify changes took effect (check debug output)
 
 ### Before Long Runs:
-1. [ ] Estimate GPU time needed
-2. [ ] Check quota remaining
-3. [ ] Test with `epochs=1` first
+1. [ ] **VERIFY SINGLE GPU** (not x2!)
+2. [ ] Estimate GPU time needed (50 epochs ≈ 20-25 hours)
+3. [ ] Check quota remaining (need >20 hours)
+4. [ ] Test with `epochs=1` first
+5. [ ] Double-check accelerator setting in session options
 
 ---
 
@@ -260,6 +310,9 @@ Hardcoded paths break easily. Use path detection with fallbacks.
 
 ---
 
-**Total issues resolved:** 7
-**Training status:** ✅ Successfully started
-**Next steps:** Monitor F1 score, run inference after training completes
+**Total issues resolved:** 8
+**Training status:** ⚠️ Ran out of GPU quota at epoch 7 due to x2 GPUs
+**Next steps:**
+- Wait for weekly GPU quota reset
+- Retry with SINGLE GPU (not x2)
+- Use naming format: `luc-cmfd-{milestone}-{purpose}-v{number}`
