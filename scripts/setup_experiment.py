@@ -44,6 +44,30 @@ def get_git_info():
         return None
 
 
+def get_environment_info():
+    """Get key environment information."""
+    import sys
+    import platform
+
+    env = {
+        'python_version': sys.version,
+        'platform': platform.platform(),
+        'system': platform.system()
+    }
+
+    try:
+        import torch
+        env['torch_version'] = torch.__version__
+        env['cuda_available'] = torch.cuda.is_available()
+        if torch.cuda.is_available():
+            env['cuda_version'] = torch.version.cuda
+            env['gpu_name'] = torch.cuda.get_device_name(0)
+    except:
+        pass
+
+    return env
+
+
 def setup_experiment(name, parent_dir='runs', config_path=None, notes=None):
     """Create experiment directory with metadata."""
 
@@ -65,13 +89,14 @@ def setup_experiment(name, parent_dir='runs', config_path=None, notes=None):
         'name': name,
         'created': timestamp,
         'git': get_git_info(),
+        'environment': get_environment_info(),
         'notes': notes,
         'config_path': str(config_path) if config_path else None,
     }
 
     with open(exp_dir / 'metadata.json', 'w') as f:
         json.dump(metadata, f, indent=2)
-    print(f"✓ Saved metadata")
+    print(f"✓ Saved metadata with git hash and environment info")
 
     # Create empty log file with header
     with open(exp_dir / 'train_log.csv', 'w') as f:
